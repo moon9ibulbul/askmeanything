@@ -76,25 +76,23 @@ $total_pages = ceil($total_questions / $limit);
             </button>
             <nav id="menu" class="hidden md:flex space-x-6">
                 <a href="index.php" class="text-blue-600 font-medium">Home</a>
-                <a href="admin/login.php" class="text-gray-600 hover:text-blue-600 transition">Admin</a>
             </nav>
         </div>
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-gray-100 px-4 py-2">
             <a href="index.php" class="block py-2 text-blue-600 font-medium">Home</a>
-            <a href="admin/login.php" class="block py-2 text-gray-600 hover:text-blue-600 transition">Admin</a>
         </div>
     </header>
 
     <main class="container mx-auto px-4 py-8 max-w-2xl">
         <!-- Submission Form -->
         <div class="mb-12 bg-white p-6 rounded-2xl modern-shadow border border-gray-100">
-            <h2 class="text-lg font-semibold mb-4 text-gray-700">Ask me anything!</h2>
+            <h2 class="text-lg font-semibold mb-4 text-gray-700">Tanya Apa Saja!</h2>
             <form id="ask-form">
-                <textarea id="question_text" name="question" rows="4" required class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none" placeholder="Type your anonymous question here..."></textarea>
+                <textarea id="question_text" name="question" rows="4" required class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none" placeholder="Tulis pertanyaan kalian..."></textarea>
                 <div class="mt-4 flex justify-end">
                     <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-full font-medium hover:bg-blue-700 transition transform hover:scale-105">
-                        Send Question
+                        Kirim Pertanyaan
                     </button>
                 </div>
             </form>
@@ -107,7 +105,7 @@ $total_pages = ceil($total_questions / $limit);
                 <?php echo $single_q ? 'Shared Question' : 'Answered Questions'; ?>
             </h2>
             <?php if ($single_q): ?>
-                <a href="index.php" class="text-sm text-blue-600 hover:underline">View All Questions</a>
+                <a href="index.php" class="text-sm text-blue-600 hover:underline">Lihat Semua Pertanyaan</a>
             <?php else: ?>
                 <div class="flex items-center gap-2">
                     <span class="text-sm text-gray-500">Order by:</span>
@@ -124,7 +122,7 @@ $total_pages = ceil($total_questions / $limit);
         <div class="space-y-6">
             <?php if (empty($questions)): ?>
                 <div class="text-center py-12 text-gray-500 italic">
-                    No questions answered yet. Check back later!
+                    Belum ada pertanyaan yang dijawab. Cek lagi nanti!
                 </div>
             <?php else: ?>
                 <?php foreach ($questions as $q): ?>
@@ -182,10 +180,10 @@ $total_pages = ceil($total_questions / $limit);
     </main>
 
     <!-- Hidden element for Image Generation -->
-    <div id="image-capture-template" class="fixed -left-full top-0 p-8 bg-white w-[500px]" style="z-index: -1;">
+    <div id="image-capture-template" class="fixed -left-[9999px] top-0 p-8 bg-white w-[500px]" style="z-index: -1; pointer-events: none;">
         <div class="border-2 border-gray-100 rounded-3xl p-10 bg-white modern-shadow">
             <div class="mb-8">
-                <h1 class="text-sm font-bold text-blue-500 uppercase tracking-[0.2em] mb-4">AstralExpress AMA</h1>
+                <h1 class="text-sm font-bold text-blue-500 uppercase tracking-[0.2em] mb-4">AstralExpress</h1>
                 <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
                     <p id="capture-question" class="text-gray-800 text-xl font-bold leading-relaxed"></p>
                 </div>
@@ -194,7 +192,7 @@ $total_pages = ceil($total_questions / $limit);
                 <p id="capture-answer" class="text-gray-600 text-lg leading-relaxed"></p>
             </div>
             <div class="mt-10 pt-6 border-t border-gray-50 flex justify-between items-center text-xs text-gray-400 font-medium">
-                <span>By AstralExpress AMA</span>
+                <span>Oleh Anonim</span>
                 <span id="capture-date"></span>
             </div>
         </div>
@@ -286,7 +284,7 @@ $total_pages = ceil($total_questions / $limit);
                 link.download = `AMA-${id}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                template.style.left = '-100%';
+                template.style.left = '-9999px'; // Kembalikan jauh ke luar layar
             });
         }
     </script>
