@@ -36,6 +36,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             is_answered BOOLEAN DEFAULT FALSE
         )");
 
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reactions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            question_id INT NOT NULL,
+            visitor_id VARCHAR(255) NOT NULL,
+            reaction_type ENUM('love', 'like', 'sad', 'laugh') NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY unique_reaction (question_id, visitor_id),
+            FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+        )");
+
         $stmt = $pdo->prepare("INSERT IGNORE INTO admins (username, password) VALUES (?, ?)");
         $stmt->execute([$admin_user, $admin_pass]);
 

@@ -6,6 +6,20 @@ if (!file_exists($config_file)) {
 }
 require_once $config_file;
 
+// Visitor Identification
+if (!isset($_COOKIE['visitor_id'])) {
+    $visitor_id = bin2hex(random_bytes(16));
+    setcookie('visitor_id', $visitor_id, [
+        'expires' => time() + (86400 * 365),
+        'path' => '/',
+        'secure' => false, // Set to true if using HTTPS
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+} else {
+    $visitor_id = $_COOKIE['visitor_id'];
+}
+
 // Pagination
 $limit = 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -50,6 +64,15 @@ if ($single_q) {
 $total_stmt = $pdo->query("SELECT COUNT(*) FROM questions WHERE is_answered = 1");
 $total_questions = $total_stmt->fetchColumn();
 $total_pages = ceil($total_questions / $limit);
+
+// Fetch user's reactions
+$stmt = $pdo->prepare("SELECT question_id, reaction_type FROM reactions WHERE visitor_id = ?");
+$stmt->execute([$visitor_id]);
+$user_reactions_raw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$user_reactions = [];
+foreach ($user_reactions_raw as $ur) {
+    $user_reactions[$ur['question_id']] = $ur['reaction_type'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -137,18 +160,22 @@ $total_pages = ceil($total_questions / $limit);
                         </div>
 
                         <!-- Reactions & Share -->
+                        <?php
+                        $user_reaction_type = isset($user_reactions[$q['id']]) ? $user_reactions[$q['id']] : null;
+                        $has_reacted = !is_null($user_reaction_type);
+                        ?>
                         <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-50">
-                            <div class="flex items-center gap-4">
-                                <button onclick="react(<?php echo $q['id']; ?>, 'love')" class="flex items-center gap-1 text-gray-500 hover:text-red-500 transition group/btn">
+                            <div class="flex items-center gap-4 reaction-buttons-<?php echo $q['id']; ?>">
+                                <button onclick="react(<?php echo $q['id']; ?>, 'love')" <?php echo $has_reacted ? 'disabled' : ''; ?> class="flex items-center gap-1 <?php echo ($has_reacted && $user_reaction_type === 'love') ? 'text-red-500' : 'text-gray-500 hover:text-red-500'; ?> transition group/btn disabled:cursor-not-allowed">
                                     <i class="fas fa-heart"></i> <span class="text-sm" id="love-count-<?php echo $q['id']; ?>"><?php echo $q['love_count']; ?></span>
                                 </button>
-                                <button onclick="react(<?php echo $q['id']; ?>, 'like')" class="flex items-center gap-1 text-gray-500 hover:text-blue-500 transition">
+                                <button onclick="react(<?php echo $q['id']; ?>, 'like')" <?php echo $has_reacted ? 'disabled' : ''; ?> class="flex items-center gap-1 <?php echo ($has_reacted && $user_reaction_type === 'like') ? 'text-blue-500' : 'text-gray-500 hover:text-blue-500'; ?> transition disabled:cursor-not-allowed">
                                     <i class="fas fa-thumbs-up"></i> <span class="text-sm" id="like-count-<?php echo $q['id']; ?>"><?php echo $q['like_count']; ?></span>
                                 </button>
-                                <button onclick="react(<?php echo $q['id']; ?>, 'sad')" class="flex items-center gap-1 text-gray-500 hover:text-yellow-600 transition">
+                                <button onclick="react(<?php echo $q['id']; ?>, 'sad')" <?php echo $has_reacted ? 'disabled' : ''; ?> class="flex items-center gap-1 <?php echo ($has_reacted && $user_reaction_type === 'sad') ? 'text-yellow-600' : 'text-gray-500 hover:text-yellow-600'; ?> transition disabled:cursor-not-allowed">
                                     <i class="fas fa-sad-tear"></i> <span class="text-sm" id="sad-count-<?php echo $q['id']; ?>"><?php echo $q['sad_count']; ?></span>
                                 </button>
-                                <button onclick="react(<?php echo $q['id']; ?>, 'laugh')" class="flex items-center gap-1 text-gray-500 hover:text-orange-500 transition">
+                                <button onclick="react(<?php echo $q['id']; ?>, 'laugh')" <?php echo $has_reacted ? 'disabled' : ''; ?> class="flex items-center gap-1 <?php echo ($has_reacted && $user_reaction_type === 'laugh') ? 'text-orange-500' : 'text-gray-500 hover:text-orange-500'; ?> transition disabled:cursor-not-allowed">
                                     <i class="fas fa-laugh-squint"></i> <span class="text-sm" id="laugh-count-<?php echo $q['id']; ?>"><?php echo $q['laugh_count']; ?></span>
                                 </button>
                             </div>
@@ -248,6 +275,26 @@ $total_pages = ceil($total_questions / $limit);
                 const result = await response.json();
                 if (result.success) {
                     document.getElementById(`${type}-count-${id}`).textContent = result.new_count;
+
+                    // Disable all buttons in this card and highlight selected
+                    const container = document.querySelector(`.reaction-buttons-${id}`);
+                    const buttons = container.querySelectorAll('button');
+                    buttons.forEach(btn => {
+                        btn.disabled = true;
+                        btn.classList.add('disabled:cursor-not-allowed');
+
+                        // Highlight the one clicked (simplified, logic could be better)
+                        const icon = btn.querySelector('i');
+                        if (btn.getAttribute('onclick').includes(`'${type}'`)) {
+                             btn.classList.remove('text-gray-500', 'hover:text-red-500', 'hover:text-blue-500', 'hover:text-yellow-600', 'hover:text-orange-500');
+                             if (type === 'love') btn.classList.add('text-red-500');
+                             if (type === 'like') btn.classList.add('text-blue-500');
+                             if (type === 'sad') btn.classList.add('text-yellow-600');
+                             if (type === 'laugh') btn.classList.add('text-orange-500');
+                        }
+                    });
+                } else {
+                    alert(result.error || 'Something went wrong.');
                 }
             } catch (error) {
                 console.error(error);

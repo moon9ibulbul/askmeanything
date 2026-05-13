@@ -15,10 +15,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $column = $type . '_count';
+    $visitor_id = isset($_COOKIE['visitor_id']) ? $_COOKIE['visitor_id'] : '';
+
+    if (empty($visitor_id)) {
+        echo json_encode(['success' => false, 'error' => 'Visitor identification missing.']);
+        exit;
+    }
 
     try {
         $pdo->beginTransaction();
 
+        // Check if already reacted
+        $stmt = $pdo->prepare("SELECT id FROM reactions WHERE question_id = ? AND visitor_id = ?");
+        $stmt->execute([$id, $visitor_id]);
+        if ($stmt->fetch()) {
+            $pdo->rollBack();
+            echo json_encode(['success' => false, 'error' => 'You have already reacted to this question.']);
+            exit;
+        }
+
+        // Insert reaction
+        $stmt = $pdo->prepare("INSERT INTO reactions (question_id, visitor_id, reaction_type) VALUES (?, ?, ?)");
+        $stmt->execute([$id, $visitor_id, $type]);
+
+        // Update count
         $stmt = $pdo->prepare("UPDATE questions SET $column = $column + 1 WHERE id = ?");
         $stmt->execute([$id]);
 
