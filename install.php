@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             visitor_id VARCHAR(255) NOT NULL,
             reaction_type ENUM('love', 'like', 'sad', 'laugh') NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE KEY unique_reaction (question_id, visitor_id),
+            UNIQUE KEY unique_reaction (visitor_id, question_id),
             FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
         )");
 
